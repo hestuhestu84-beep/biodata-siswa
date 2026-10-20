@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Biodata Siswa</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef2f7;
+      padding: 20px;
+    }
+    .card {
+      max-width: 450px;
+      margin: auto;
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0;
+      box-sizing: border-box;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: 0;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Form Biodata Siswa</h2>
+
+    <form id="form">
+      <input id="nama" placeholder="Nama" required>
+      <input id="kelas" placeholder="Kelas">
+      <input id="jurusan" placeholder="Jurusan">
+      <input id="alamat" placeholder="Kota tempat tinggal">
+      <input id="hobi" placeholder="Hobi">
+      <button type="submit">Simpan Biodata</button>
+    </form>
+
+    <p id="pesan"></p>
+    <h3>Daftar Biodata</h3>
+    <div id="daftar"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const db = supabase.createClient(
+      "URL_SUPABASE",
+      "PUBLISHABLE_KEY"
+    );
+
+    async function tampilkan() {
+      const { data, error } = await db
+        .from("biodata")
+        .select("id, nama, kelas, jurusan, alamat, hobi")
+        .order("id", { ascending: false });
+
+      if (error) {
+        document.getElementById("pesan").textContent =
+          "Gagal mengambil data.";
+        return;
+      }
+
+      const daftar = document.getElementById("daftar");
+      daftar.replaceChildren();
+
+      data.forEach(item => {
+        const kartu = document.createElement("div");
+        const judul = document.createElement("strong");
+        judul.textContent = item.nama;
+
+        const detail = document.createElement("p");
+        detail.textContent =
+          `${item.kelas || "-"} | ${item.jurusan || "-"} | ` +
+          `${item.alamat || "-"} | ${item.hobi || "-"}`;
+
+        kartu.append(judul, detail);
+        daftar.append(kartu);
+      });
+    }
+
+    document.getElementById("form").addEventListener(
+      "submit", async (event) => {
+        event.preventDefault();
+
+        const biodata = {
+          nama: document.getElementById("nama").value,
+          kelas: document.getElementById("kelas").value,
+          jurusan: document.getElementById("jurusan").value,
+          alamat: document.getElementById("alamat").value,
+          hobi: document.getElementById("hobi").value
+        };
+
+        const { error } = await db
+          .from("biodata")
+          .insert(biodata);
+
+        document.getElementById("pesan").textContent =
+          error ? "Data gagal disimpan." : "Biodata berhasil disimpan!";
+
+        if (!error) {
+          event.target.reset();
+          tampilkan();
+        }
+      }
+    );
+
+    tampilkan();
+  </script>
+</body>
+</html>
